@@ -1,54 +1,66 @@
-
 import { useState } from 'react';
-import './App.css';
+import { Task } from './Task';
+import { v4 as uuidv4 } from 'uuid'; // Import UUID for unique ID generation
 
 function App() {
-  // Entire list
-  const [todoList, setTodoList] = useState([]);
-  // Individual task 
-  const [newTask, setNewTask] = useState("");
-  // Handle user input
-  const handleChange = (event) => {
-    setNewTask(event.target.value); // Corrected the typo: "event.target.value"
-  }
+   const [todoList, setTodoList] = useState([]);
+   const [newTask, setNewTask] = useState('');
 
+   const handleChange = (event) => {   
+      setNewTask(event.target.value);
+   }
 
-  const addTask = () =>{
-    const task ={
-      id: todoList.length === 0 ? 1 : todoList[todoList.length -1].id + 1,
-      taskName: newTask,
-    };
-   setTodoList([...todoList, newTask]);
+   const addTask = () => {
+      if (newTask.trim() === '') return; // Prevent adding empty tasks
+      const task = {
+          id: uuidv4(), // Use UUID for unique ID
+          taskName: newTask,
+          completed: false
+      };
+      setTodoList([...todoList, task]);
+      setNewTask(''); // Clear the input field after adding a task
+   };
 
-  };
+   const deleteTask = (id) => {
+      setTodoList(todoList.filter(task => task.id !== id));
+   }
 
-  const deleteTask = (taskName) => {
-    const newTodoList = todoList.filter((task) => {
-      return task !== taskName;
-    });
-    setTodoList(newTodoList);
-  }
-  
-  
+   const completeTask = (id) => {
+      setTodoList(todoList.map(task => {
+          if (task.id === id) {
+              return { ...task, completed: true };
+          } else {
+              return task;
+          }
+      }));
+   }
 
-  return (
-    <div className="App">
-     <div className="addTask">
-     <input onChange={handleChange}/>
-     <button onClick={addTask}>Add Task</button>
-     </div>
-     <div className="List">
-       {todoList.map((task) => {
-       return ( 
-         <div>
-       <h1>{task}</h1>
-       <button onClick={() => deleteTask(task)}>X</button>
-       </div>
-       );
-       })} 
-     </div>
-    </div>
-  );
-}
+   return (
+      <div className="App">
+         <div className="addTask">
+               <input 
+                   value={newTask} // Controlled component
+                   onChange={handleChange} 
+                   placeholder="Enter a new task" // Added placeholder for better UX
+               />
+               <button onClick={addTask}>Add Task</button>
+         </div>
+            
+         <div className="list">
+            {todoList.map(task => (
+               <Task
+                   key={task.id} // Using key prop for efficient list rendering
+                   id={task.id}
+                   taskName={task.taskName}
+                   completed={task.completed}
+                   deleteTask={deleteTask}
+                   completeTask={completeTask}
+                   style={{ backgroundColor: task.completed ? 'green' : 'transparent' }} // Conditional styling
+               />
+            ))}
+         </div>
+      </div>
+   );
+}	
 
 export default App;
